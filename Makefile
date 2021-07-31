@@ -17,3 +17,9 @@ server2:
 	
 client2:
 	cargo run --bin grpc-web-client
+
+server3:
+	cargo run --bin greet-server
+	
+client3:
+	cargo run --bin greet-client

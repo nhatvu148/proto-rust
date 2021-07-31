@@ -52,16 +52,16 @@ service GreetService{
     // Unary
     rpc Greet(GreetRequest) returns (GreetResponse) {};
 
-    // Server Streaming
-    rpc GreetManyTimes(GreetManyTimesRequest) returns (stream GreetManytimesResponse) {};
+    // // Server Streaming
+    // rpc GreetManyTimes(GreetManyTimesRequest) returns (stream GreetManytimesResponse) {};
 
-    // Client Streaming
-    rpc LongGreet(stream LongGreetRequest) returns (LongGreetResponse) {};
+    // // Client Streaming
+    // rpc LongGreet(stream LongGreetRequest) returns (LongGreetResponse) {};
 
-    // BiDi Streaming
-    rpc GreetEveryone(stream GreetEveryoneRequest) returns (stream GreetEveryoneResponse) {};
+    // // BiDi Streaming
+    // rpc GreetEveryone(stream GreetEveryoneRequest) returns (stream GreetEveryoneResponse) {};
 
-    // Unary With Deadline
-    rpc GreetWithDeadline(GreetWithDeadlineRequest) returns (GreetWithDeadlineResponse) {};
+    // // Unary With Deadline
+    // rpc GreetWithDeadline(GreetWithDeadlineRequest) returns (GreetWithDeadlineResponse) {};
 
 }

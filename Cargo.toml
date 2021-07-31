@@ -55,3 +55,11 @@ path = "src/grpc-web/server.rs"
 [[bin]]
 name = "grpc-web-client"
 path = "src/grpc-web/client.rs"
+
+[[bin]]
+name = "greet-client"
+path = "src/greet/client.rs"
+
+[[bin]]
+name = "greet-server"
+path = "src/greet/server.rs"
