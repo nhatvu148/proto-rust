@@ -16,11 +16,18 @@ tokio = { version = "1.9.0", features = [
     "net",
 ] }
 futures = { version = "0.3.16", default-features = false, features = ["alloc"] }
-rand = "0.8.4"
+async-stream = "0.3.2"
 tokio-stream = { version = "0.1.7", features = ["net"] }
+# Required for routeguide
 serde = { version = "1.0.127", features = ["derive"] }
 serde_json = "1.0.66"
-async-stream = "0.3.2"
+rand = "0.8.4"
+# grpc-web
+tonic-web = "0.1.0"
+bytes = "1.0.1"
+http = "0.2.4"
+hyper = { version = "0.14.11", features = ["full"] }
+tracing-subscriber = { version = "0.2.19", features = ["tracing-log"] }
 
 [build-dependencies]
 tonic-build = "0.5.1"
@@ -40,3 +47,11 @@ path = "src/routeguide/server.rs"
 [[bin]]
 name = "routeguide-client"
 path = "src/routeguide/client.rs"
+
+[[bin]]
+name = "grpc-web-server"
+path = "src/grpc-web/server.rs"
+
+[[bin]]
+name = "grpc-web-client"
+path = "src/grpc-web/client.rs"

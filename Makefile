@@ -11,3 +11,9 @@ server1:
 	
 client1:
 	cargo run --bin routeguide-client
+
+server2:
+	cargo run --bin grpc-web-server
+	
+client2:
+	cargo run --bin grpc-web-client
