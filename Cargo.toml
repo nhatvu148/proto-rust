@@ -15,6 +15,12 @@ tokio = { version = "1.9.0", features = [
     "macros",
     "net",
 ] }
+futures = { version = "0.3.16", default-features = false, features = ["alloc"] }
+rand = "0.8.4"
+tokio-stream = { version = "0.1.7", features = ["net"] }
+serde = { version = "1.0.127", features = ["derive"] }
+serde_json = "1.0.66"
+async-stream = "0.3.2"
 
 [build-dependencies]
 tonic-build = "0.5.1"
@@ -26,3 +32,11 @@ path = "src/helloworld/server.rs"
 [[bin]]
 name = "helloworld-client"
 path = "src/helloworld/client.rs"
+
+[[bin]]
+name = "routeguide-server"
+path = "src/routeguide/server.rs"
+
+[[bin]]
+name = "routeguide-client"
+path = "src/routeguide/client.rs"
