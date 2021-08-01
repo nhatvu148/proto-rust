@@ -1,9 +1,13 @@
+use futures::StreamExt;
 use greet::greet_service_server::{GreetService, GreetServiceServer};
-use greet::{GreetManyTimesRequest, GreetManytimesResponse, GreetRequest, GreetResponse, Greeting};
+use greet::{
+    GreetManyTimesRequest, GreetManytimesResponse, GreetRequest, GreetResponse, Greeting,
+    LongGreetRequest, LongGreetResponse,
+};
 use tokio::sync::mpsc;
 use tokio::time::{sleep, Duration};
 use tokio_stream::wrappers::ReceiverStream;
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 pub mod greet {
     tonic::include_proto!("greet");
@@ -73,6 +77,41 @@ impl GreetService for MyGreetService {
         });
 
         Ok(Response::new(ReceiverStream::new(rx)))
+    }
+
+    async fn long_greet(
+        &self,
+        request: Request<Streaming<LongGreetRequest>>,
+    ) -> Result<Response<LongGreetResponse>, Status> {
+        println!("LongGreet function was invoked with a streaming request");
+
+        let mut stream = request.into_inner();
+
+        let response: LongGreetResponse;
+        let mut result = "".to_string();
+
+        while let Some(long_greet_request) = stream.next().await {
+            let long_greet_request = long_greet_request?;
+
+            let greeting = Greeting {
+                first_name: match &long_greet_request.greeting {
+                    Some(gr) => gr.first_name.clone(),
+                    None => "".to_string(),
+                },
+                last_name: match &long_greet_request.greeting {
+                    Some(gr) => gr.last_name.clone(),
+                    None => "".to_string(),
+                },
+            };
+
+            result = format!(
+                "{}Hello {} {}!",
+                result, greeting.first_name, greeting.last_name
+            );
+        }
+        response = LongGreetResponse { result: result };
+
+        Ok(Response::new(response))
     }
 }
 
