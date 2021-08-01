@@ -1,7 +1,9 @@
-use tonic::{transport::Server, Request, Response, Status};
-
 use greet::greet_service_server::{GreetService, GreetServiceServer};
-use greet::{GreetRequest, GreetResponse, Greeting};
+use greet::{GreetManyTimesRequest, GreetManytimesResponse, GreetRequest, GreetResponse, Greeting};
+use tokio::sync::mpsc;
+use tokio::time::{sleep, Duration};
+use tokio_stream::wrappers::ReceiverStream;
+use tonic::{transport::Server, Request, Response, Status};
 
 pub mod greet {
     tonic::include_proto!("greet");
@@ -33,6 +35,44 @@ impl GreetService for MyGreetService {
             result: format!("Hello {} {}!", greeting.first_name, greeting.last_name),
         };
         Ok(Response::new(reply))
+    }
+
+    type GreetManyTimesStream = ReceiverStream<Result<GreetManytimesResponse, Status>>;
+
+    async fn greet_many_times(
+        &self,
+        request: Request<GreetManyTimesRequest>,
+    ) -> Result<Response<Self::GreetManyTimesStream>, Status> {
+        println!("GreetManyTimes function was invoked with {:?}", request);
+        let greeting = Greeting {
+            first_name: match &request.get_ref().greeting {
+                Some(gr) => gr.first_name.clone(),
+                None => "".to_string(),
+            },
+            last_name: match &request.get_ref().greeting {
+                Some(gr) => gr.last_name.clone(),
+                None => "".to_string(),
+            },
+        };
+
+        let (tx, rx) = mpsc::channel(4);
+
+        tokio::spawn(async move {
+            for i in 0..10 {
+                let response = GreetManytimesResponse {
+                    result: format!(
+                        "Hello {} {} number {}!",
+                        greeting.first_name, greeting.last_name, i
+                    ),
+                };
+                tx.send(Ok(response.clone())).await.unwrap();
+                sleep(Duration::from_millis(1000)).await;
+            }
+
+            println!(" /// done sending");
+        });
+
+        Ok(Response::new(ReceiverStream::new(rx)))
     }
 }
 
