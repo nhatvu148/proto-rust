@@ -1,11 +1,14 @@
 use futures::stream;
 use greet::greet_service_client::GreetServiceClient;
 use greet::{
-    GreetEveryoneRequest, GreetManyTimesRequest, GreetRequest, Greeting, LongGreetRequest,
+    GreetEveryoneRequest, GreetManyTimesRequest, GreetRequest, GreetWithDeadlineRequest, Greeting,
+    LongGreetRequest,
 };
 use std::error::Error;
+use std::time::Duration;
 use tonic::transport::Channel;
 use tonic::Request;
+use tower::timeout::Timeout;
 
 pub mod greet {
     tonic::include_proto!("greet");
@@ -137,17 +140,31 @@ async fn bi_dir_stream(client: &mut GreetServiceClient<Channel>) -> Result<(), B
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = GreetServiceClient::connect("http://[::1]:50051").await?;
+    // let channel = Channel::from_static("http://[::1]:50051").connect().await?;
+    // let timeout_channel = Timeout::new(channel, Duration::from_millis(1000));
+
+    // let mut client = GreetServiceClient::new(timeout_channel);
 
     let greeting = Greeting {
         first_name: "Kyoko".to_string(),
         last_name: "Murakami".to_string(),
     };
 
+    // let request = Request::new(GreetWithDeadlineRequest {
+    //     greeting: greeting.into(),
+    // });
+
+    // let response = match client.greet_with_deadline(request).await {
+    //     Ok(res) => res,
+    //     Err(e) => {
+    //         panic!("{:?}", e)
+    //     }
+    // };
+
+    let mut client = GreetServiceClient::connect("http://[::1]:50051").await?;
     let request = Request::new(GreetRequest {
         greeting: greeting.into(),
     });
-
     let response = client.greet(request).await?;
 
     println!("RESPONSE={:?}", response);

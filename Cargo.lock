@@ -560,6 +560,7 @@ dependencies = [
  "tonic",
  "tonic-build",
  "tonic-web",
+ "tower",
  "tracing-subscriber",
 ]
 

@@ -2,7 +2,8 @@ use futures::{Stream, StreamExt};
 use greet::greet_service_server::{GreetService, GreetServiceServer};
 use greet::{
     GreetEveryoneRequest, GreetEveryoneResponse, GreetManyTimesRequest, GreetManytimesResponse,
-    GreetRequest, GreetResponse, Greeting, LongGreetRequest, LongGreetResponse,
+    GreetRequest, GreetResponse, GreetWithDeadlineRequest, GreetWithDeadlineResponse, Greeting,
+    LongGreetRequest, LongGreetResponse,
 };
 use std::pin::Pin;
 use tokio::sync::mpsc;
@@ -146,18 +147,38 @@ impl GreetService for MyGreetService {
                     "Hello {} {}!",
                     greeting.first_name, greeting.last_name
                 );
-                let res2 = GreetEveryoneResponse { result: res };
+                let result = GreetEveryoneResponse { result: res };
 
-                yield res2.clone();
-                // result.push(res2);
+                yield result.clone();
             }
-
-            // for res in result {
-            //     yield res.clone();
-            // }
         };
 
         Ok(Response::new(Box::pin(output) as Self::GreetEveryoneStream))
+    }
+
+    async fn greet_with_deadline(
+        &self,
+        request: Request<GreetWithDeadlineRequest>,
+    ) -> Result<Response<GreetWithDeadlineResponse>, Status> {
+        println!("Got a request from {:?}", request.remote_addr());
+
+        sleep(Duration::from_millis(5000)).await;
+
+        let greeting = Greeting {
+            first_name: match &request.get_ref().greeting {
+                Some(gr) => gr.first_name.clone(),
+                None => "".to_string(),
+            },
+            last_name: match &request.get_ref().greeting {
+                Some(gr) => gr.last_name.clone(),
+                None => "".to_string(),
+            },
+        };
+
+        let reply = GreetWithDeadlineResponse {
+            result: format!("Hello {} {}!", greeting.first_name, greeting.last_name),
+        };
+        Ok(Response::new(reply))
     }
 }
 
