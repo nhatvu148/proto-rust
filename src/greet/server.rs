@@ -1,9 +1,10 @@
-use futures::StreamExt;
+use futures::{Stream, StreamExt};
 use greet::greet_service_server::{GreetService, GreetServiceServer};
 use greet::{
-    GreetManyTimesRequest, GreetManytimesResponse, GreetRequest, GreetResponse, Greeting,
-    LongGreetRequest, LongGreetResponse,
+    GreetEveryoneRequest, GreetEveryoneResponse, GreetManyTimesRequest, GreetManytimesResponse,
+    GreetRequest, GreetResponse, Greeting, LongGreetRequest, LongGreetResponse,
 };
+use std::pin::Pin;
 use tokio::sync::mpsc;
 use tokio::time::{sleep, Duration};
 use tokio_stream::wrappers::ReceiverStream;
@@ -112,6 +113,51 @@ impl GreetService for MyGreetService {
         response = LongGreetResponse { result: result };
 
         Ok(Response::new(response))
+    }
+
+    type GreetEveryoneStream =
+        Pin<Box<dyn Stream<Item = Result<GreetEveryoneResponse, Status>> + Send + Sync + 'static>>;
+
+    async fn greet_everyone(
+        &self,
+        request: Request<Streaming<GreetEveryoneRequest>>,
+    ) -> Result<Response<Self::GreetEveryoneStream>, Status> {
+        println!("GreetEveryone function was invoked with a streaming request");
+
+        let mut stream = request.into_inner();
+        // let mut result: Vec<GreetEveryoneResponse> = Vec::new();
+
+        let output = async_stream::try_stream! {
+            while let Some(greet_everyone_request) = stream.next().await {
+                let greet_everyone_request = greet_everyone_request?;
+
+                let greeting = Greeting {
+                    first_name: match &greet_everyone_request.greeting {
+                        Some(gr) => gr.first_name.clone(),
+                        None => "".to_string(),
+                    },
+                    last_name: match &greet_everyone_request.greeting {
+                        Some(gr) => gr.last_name.clone(),
+                        None => "".to_string(),
+                    },
+                };
+
+                let res = format!(
+                    "Hello {} {}!",
+                    greeting.first_name, greeting.last_name
+                );
+                let res2 = GreetEveryoneResponse { result: res };
+
+                yield res2.clone();
+                // result.push(res2);
+            }
+
+            // for res in result {
+            //     yield res.clone();
+            // }
+        };
+
+        Ok(Response::new(Box::pin(output) as Self::GreetEveryoneStream))
     }
 }
 
